@@ -59,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Jwt Authorization header using the Beare scheme .example :\"Authorization :Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.ApiKey, 
         Scheme = "Bearer"
     });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement

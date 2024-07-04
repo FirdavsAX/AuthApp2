@@ -1,4 +1,5 @@
 ﻿using AuthApp2.Authentication;
+using AuthApp2.Authorization.ClaimBasedAuthorization.ClaimTypes;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -69,31 +70,46 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
     }
     private async Task<string?> GenerateToken(AppUser user,string userName)
     {
+        //Get secret key, audince , issuer in configuration
         var secret = configuration["JwtConfig:Secret"];
         var audience = configuration["JwtConfig:ValidAudiences"];
         var issuer = configuration["JwtConfig:ValidIssuer"];
+      
         if (secret is null ||  audience is null || issuer is null)
         {
             throw new ApplicationException("Jwt is not set in the configuration");
         }
+
+        //Encoding Secret Key
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        var userRoles = await userManager.GetRolesAsync(user);
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name,userName)
-        };
-        claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+        //Get Roles and Enter they to Claim
+        //var userRoles = await userManager.GetRolesAsync(user);
+        //var claims = new List<Claim>
+        //{
+        //    new(ClaimTypes.Name,userName)
+        //};
 
+        //claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+        //token descripting there, Subject have handler claims 
         var tokenDescriptor = new SecurityTokenDescriptor()
         {
-            Subject = new ClaimsIdentity(claims),
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Name , userName),
+                // Suppose the user's information is stored in the database so that we can retrieve it from the database
+                new Claim(ClaimTypes.Country , "Uzbekistan"),
+                new Claim(AppClaimTypes.DrivingLicenseNumber,"123456789"),
+                new Claim(AppClaimTypes.AccessNumber,"123456789"),
+            }),
             Expires = DateTime.UtcNow.AddDays(1),
             Issuer = issuer,
             Audience = audience,
-            SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
         };
+
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         var token = tokenHandler.WriteToken(securityToken);
         return token;

@@ -2,6 +2,6 @@
 
 public class AppAuthorizationPolicies
 {
-    public const string RequireDrivingLicenceNumber = "RequireDrivingLicenceNumber";
+    public const string RequireDrivingLicenseNumber = "RequireDrivingLicendeNumber";
     public const string RequireAccessNumber = "RequireAccessNumber";
 }

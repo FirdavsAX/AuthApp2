@@ -1,4 +1,6 @@
 using AuthApp2.Authentication;
+using AuthApp2.Authorization.ClaimBasedAuthorization.AuthorizationPolicies;
+using AuthApp2.Authorization.ClaimBasedAuthorization.ClaimTypes;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -80,12 +82,16 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireAdminstatorRole", policy => policy.RequireRole(AppRoles.Administrator));
-    options.AddPolicy("RequireVipUserRole", policy => policy.RequireRole(AppRoles.VipUser));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole(AppRoles.User));
-    options.AddPolicy("RequireUserOrVipUserRole" , policy => policy.RequireRole(AppRoles.User,AppRoles.VipUser));
+    options.AddPolicy(AppAuthorizationPolicies.RequireAccessNumber, policy => policy.RequireClaim(AppClaimTypes.AccessNumber));
+    options.AddPolicy(AppAuthorizationPolicies.RequireDrivingLicenseNumber, policy => policy.RequireClaim(AppClaimTypes.DrivingLicenseNumber));
 });
-
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.AddPolicy("RequireAdminstatorRole", policy => policy.RequireRole(AppRoles.Administrator));
+//    options.AddPolicy("RequireVipUserRole", policy => policy.RequireRole(AppRoles.VipUser));
+//    options.AddPolicy("RequireUserRole", policy => policy.RequireRole(AppRoles.User));
+//    options.AddPolicy("RequireUserOrVipUserRole", policy => policy.RequireRole(AppRoles.User, AppRoles.VipUser));
+//});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

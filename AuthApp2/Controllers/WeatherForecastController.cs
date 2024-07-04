@@ -1,4 +1,6 @@
 using AuthApp2.Authentication;
+using AuthApp2.Authorization.ClaimBasedAuthorization.AuthorizationPolicies;
+using AuthApp2.Authorization.ClaimBasedAuthorization.ClaimTypes;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +23,24 @@ namespace AuthApp2.Controllers
             _logger = logger;
         }
 
+        public IEnumerable<WeatherForecast> GetFree()
+        {
+            var a = User;
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+            .ToArray();
+        }
+        [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
+        [HttpGet("driving-license")]
+        public ActionResult GetDrivingLicense()
+        {
+            var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value ;
+            return Ok();
+        }
         [HttpGet(Name = "GetWeatherForecast")]
         [Authorize(Roles = $"{AppRoles.User},{AppRoles.VipUser},{AppRoles.Administrator}")]
         public IEnumerable<WeatherForecast> Get()

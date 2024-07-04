@@ -82,16 +82,13 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(AppAuthorizationPolicies.RequireAccessNumber, policy => policy.RequireClaim(AppClaimTypes.AccessNumber));
     options.AddPolicy(AppAuthorizationPolicies.RequireDrivingLicenseNumber, policy => policy.RequireClaim(AppClaimTypes.DrivingLicenseNumber));
+    options.AddPolicy(AppAuthorizationPolicies.RequireAccessNumber, policy => policy.RequireClaim(AppClaimTypes.AccessNumber));
+    options.AddPolicy("RequireAdminstatorRole", policy => policy.RequireRole(AppRoles.Administrator));
+    options.AddPolicy("RequireVipUserRole", policy => policy.RequireRole(AppRoles.VipUser));
+    options.AddPolicy("RequireUserRole", policy => policy.RequireRole(AppRoles.User));
+    options.AddPolicy("RequireUserOrVipUserRole", policy => policy.RequireRole(AppRoles.User, AppRoles.VipUser));
 });
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("RequireAdminstatorRole", policy => policy.RequireRole(AppRoles.Administrator));
-//    options.AddPolicy("RequireVipUserRole", policy => policy.RequireRole(AppRoles.VipUser));
-//    options.AddPolicy("RequireUserRole", policy => policy.RequireRole(AppRoles.User));
-//    options.AddPolicy("RequireUserOrVipUserRole", policy => policy.RequireRole(AppRoles.User, AppRoles.VipUser));
-//});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

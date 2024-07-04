@@ -22,9 +22,9 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
             var user = await userManager.FindByNameAsync(model.UserName);
             if (user != null)
             {
-                if(await userManager.CheckPasswordAsync(user, model.Password))
+                if (await userManager.CheckPasswordAsync(user, model.Password))
                 {
-                    var token = await GenerateToken(user,model.UserName);
+                    var token = await GenerateToken(user, model.UserName);
                     return Ok(new { token });
                 }
             }
@@ -56,7 +56,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
 
             if (result.Succeeded && roleResult.Succeeded)
             {
-                var token = await GenerateToken(user,model.UserName);
+                var token = await GenerateToken(user, model.UserName);
                 return Ok(new { token });
             }
 
@@ -68,13 +68,13 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         return BadRequest(ModelState);
 
     }
-    private async Task<string?> GenerateToken(AppUser user,string userName)
+    private async Task<string?> GenerateToken(AppUser user, string userName)
     {
         //Get secret key, audince , issuer in configuration
         var secret = configuration["JwtConfig:Secret"];
         var audience = configuration["JwtConfig:ValidAudiences"];
         var issuer = configuration["JwtConfig:ValidIssuer"];
-      
+
         if (secret is null ||  audience is null || issuer is null)
         {
             throw new ApplicationException("Jwt is not set in the configuration");
@@ -85,25 +85,19 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         var tokenHandler = new JwtSecurityTokenHandler();
 
         //Get Roles and Enter they to Claim
-        //var userRoles = await userManager.GetRolesAsync(user);
-        //var claims = new List<Claim>
-        //{
-        //    new(ClaimTypes.Name,userName)
-        //};
+        var userRoles = await userManager.GetRolesAsync(user);
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, userName),
+            new Claim(AppClaimTypes.DrivingLicenseNumber, "123456789"),
+            new Claim(AppClaimTypes.AccessNumber, "123456789")
+        };
 
-        //claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+        claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-        //token descripting there, Subject have handler claims 
         var tokenDescriptor = new SecurityTokenDescriptor()
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name , userName),
-                // Suppose the user's information is stored in the database so that we can retrieve it from the database
-                new Claim(ClaimTypes.Country , "Uzbekistan"),
-                new Claim(AppClaimTypes.DrivingLicenseNumber,"123456789"),
-                new Claim(AppClaimTypes.AccessNumber,"123456789"),
-            }),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddDays(1),
             Issuer = issuer,
             Audience = audience,

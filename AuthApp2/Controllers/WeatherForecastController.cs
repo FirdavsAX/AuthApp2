@@ -22,24 +22,12 @@ namespace AuthApp2.Controllers
         {
             _logger = logger;
         }
-
-        public IEnumerable<WeatherForecast> GetFree()
-        {
-            var a = User;
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
         [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
         [HttpGet("driving-license")]
         public ActionResult GetDrivingLicense()
         {
             var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value ;
-            return Ok();
+            return Ok(drivingLicenseNumber);
         }
         [HttpGet(Name = "GetWeatherForecast")]
         [Authorize(Roles = $"{AppRoles.User},{AppRoles.VipUser},{AppRoles.Administrator}")]

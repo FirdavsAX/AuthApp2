@@ -24,6 +24,17 @@ namespace AuthApp2.Controllers
             _logger = logger;
         }
 
+        [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseAndAccessNumber)]
+        [HttpGet("access-number-and-driving-license")]
+        public IActionResult GetDrivingLicenseAndAccessNumber()
+        {
+            var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value;
+            var accessNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.AccessNumber)?.Value;
+
+            return Ok(new { drivingLicenseNumber, accessNumber });
+        }
+
+
         [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
         [Authorize(Policy = AppAuthorizationPolicies.RequireAccessNumber)]  
         [HttpGet("driving-license-and-access-number")]

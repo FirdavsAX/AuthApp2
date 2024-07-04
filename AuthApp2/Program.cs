@@ -90,6 +90,14 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireVipUserRole", policy => policy.RequireRole(AppRoles.VipUser));
     options.AddPolicy("RequireUserRole", policy => policy.RequireRole(AppRoles.User));
     options.AddPolicy("RequireUserOrVipUserRole", policy => policy.RequireRole(AppRoles.User, AppRoles.VipUser));
+
+    //add multipart policy , claim based authorization
+    options.AddPolicy(AppAuthorizationPolicies.RequireDrivingLicenseNumber, policy => policy.RequireAssertion(context =>
+    {
+        var hasDrivingLinenseNumber = context.User.HasClaim(c => c.Type == AppAuthorizationPolicies.RequireDrivingLicenseNumber);
+        var hasAccessNumber = context.User.HasClaim(c => c.Type == AppAuthorizationPolicies.RequireAccessNumber);
+        return hasDrivingLinenseNumber && hasAccessNumber;
+    }));
 });
 var app = builder.Build();
 

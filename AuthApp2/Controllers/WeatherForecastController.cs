@@ -21,6 +21,17 @@ namespace AuthApp2.Controllers
             _logger = logger;
         }
 
+        [HttpGet("free", Name = "GetWeatherForecastFree")]
+        public IEnumerable<WeatherForecast> GetFree()
+        {
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+            .ToArray();
+        }
         [HttpGet(Name = "GetWeatherForecast")]
         [Authorize(Roles = $"{AppRoles.User},{AppRoles.VipUser},{AppRoles.Administrator}")]
         public IEnumerable<WeatherForecast> Get()
@@ -33,6 +44,10 @@ namespace AuthApp2.Controllers
             })
             .ToArray();
         }
+        /// <summary>
+        /// User can both roles : User and Vip user. This is multiRole policy
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("vip",Name = "GetVipWeatherForecast")]
         [Authorize(Roles = AppRoles.VipUser)]
         [Authorize(Roles = AppRoles.User)]

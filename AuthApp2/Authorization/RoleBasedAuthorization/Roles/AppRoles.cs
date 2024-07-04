@@ -1,4 +1,4 @@
-﻿namespace AuthApp2.Roles;
+﻿namespace AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 
 public class AppRoles
 {

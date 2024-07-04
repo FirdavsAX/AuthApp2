@@ -1,5 +1,5 @@
 using AuthApp2.Authentication;
-using AuthApp2.Roles;
+using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;

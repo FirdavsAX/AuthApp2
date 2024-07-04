@@ -1,5 +1,5 @@
 using AuthApp2.Authentication;
-using AuthApp2.Roles;
+using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace AuthApp2.Controllers

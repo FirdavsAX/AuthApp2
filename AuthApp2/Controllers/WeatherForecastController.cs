@@ -4,6 +4,7 @@ using AuthApp2.Authorization.ClaimBasedAuthorization.ClaimTypes;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 namespace AuthApp2.Controllers
 {
     [Authorize]
@@ -22,6 +23,30 @@ namespace AuthApp2.Controllers
         {
             _logger = logger;
         }
+
+        [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
+        [Authorize(Policy = AppAuthorizationPolicies.RequireAccessNumber)]  
+        [HttpGet("driving-license-and-access-number")]
+        public ActionResult GetCountryAndAccessNumber()
+        {
+            var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value;
+            var accessNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.AccessNumber)?.Value;
+
+            return Ok(new { drivingLicenseNumber, accessNumber });
+        }
+
+        /// <summary>
+        /// get country with requireCountry policy in authorize attribute
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Policy = AppAuthorizationPolicies.RequireCountry)]
+        [HttpGet("country")]
+        public ActionResult GetCountry()
+        {
+            var country = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Country)?.Value;
+            return Ok(country);
+        }
+        
         [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
         [HttpGet("driving-license")]
         public ActionResult GetDrivingLicense()
@@ -29,6 +54,7 @@ namespace AuthApp2.Controllers
             var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value ;
             return Ok(drivingLicenseNumber);
         }
+        
         [HttpGet(Name = "GetWeatherForecast")]
         [Authorize(Roles = $"{AppRoles.User},{AppRoles.VipUser},{AppRoles.Administrator}")]
         public IEnumerable<WeatherForecast> Get()
@@ -41,6 +67,7 @@ namespace AuthApp2.Controllers
             })
             .ToArray();
         }
+        
         [HttpGet("vip",Name = "GetVipWeatherForecast")]
         [Authorize(Roles = AppRoles.VipUser)]
         [Authorize(Roles = AppRoles.User)]
@@ -53,6 +80,7 @@ namespace AuthApp2.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)],
             }).ToArray();
         }
+        
         [HttpGet("admin-with-policy",Name ="GetAdminWeatherForecastWithPolicy")]
         [Authorize(Policy = "RequireAdminstatorRole")]
         public IEnumerable<WeatherForecast> GetAdminWithPolicy()

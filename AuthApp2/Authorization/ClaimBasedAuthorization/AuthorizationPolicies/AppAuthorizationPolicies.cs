@@ -2,6 +2,7 @@
 
 public class AppAuthorizationPolicies
 {
+    public const string RequireCountry = "RequireCountry";
     public const string RequireDrivingLicenseNumber = "RequireDrivingLicendeNumber";
     public const string RequireAccessNumber = "RequireAccessNumber";
 }

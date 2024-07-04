@@ -89,6 +89,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         var claims = new List<Claim>
         {
             new(ClaimTypes.Name, userName),
+            new Claim(ClaimTypes.Country,"Uzbekistan"),
             new Claim(AppClaimTypes.DrivingLicenseNumber, "123456789"),
             new Claim(AppClaimTypes.AccessNumber, "123456789")
         };

@@ -47,7 +47,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
             {
                 if(await userManager.CheckPasswordAsync(user, login.Password))
                 {
-                    var token = GenerateTokenAsync(user,login.UserName);
+                    var token = GenerateTokenAsync(login.UserName,"Russia");
                     return Ok(new { token });
                 }
             }
@@ -79,7 +79,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
 
             if (result.Succeeded && roleResult.Succeeded)
             {
-                var token = await GenerateTokenAsync(user, model.UserName);
+                var token = await GenerateTokenAsync( model.UserName,"Uzbeksitan");
                 return Ok(new { token });
             }
 
@@ -91,7 +91,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         return BadRequest(ModelState);
 
     }
-    private async Task<string?> GenerateTokenAsync(AppUser user, string userName)
+    private async Task<string?> GenerateTokenAsync(string userName, string country)
     {
         //Get secret key, audince , issuer in configuration
         var secret = configuration["JwtConfig:Secret"];
@@ -114,7 +114,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
                 new Claim(ClaimTypes.Name, userName),
                 //In the real world, you can get the user’s subscription type and country from the database
                 new Claim(AppClaimTypes.Subscription,"Premium"),
-                new Claim(ClaimTypes.Country,"Uzbekistan")
+                new Claim(ClaimTypes.Country,country)
             }),
             Expires = DateTime.UtcNow.AddDays(1),
             Issuer = issuer,

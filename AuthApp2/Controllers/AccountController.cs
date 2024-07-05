@@ -2,6 +2,7 @@
 using AuthApp2.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,19 +12,24 @@ namespace AuthApp2.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountController(UserManager<AppUser> userManager, IConfiguration configuration) : ControllerBase
+public class AccountController(UserManager<AppUser> userManager, IConfiguration configuration,SignInManager<AppUser> signingManager) : ControllerBase
 {
+    private readonly SignInManager<AppUser> _signInManager = signingManager ?? throw new ArgumentNullException(nameof(configuration));
+    private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+    private readonly UserManager<AppUser> _userManager = userManager ?? throw new ArgumentNullException(nameof(configuration));
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
         if (ModelState.IsValid)
         {
-            var user = await userManager.FindByNameAsync(model.UserName);
+            var user = await _userManager.FindByNameAsync(model.UserName);
             if (user != null)
             {
-                if(await userManager.CheckPasswordAsync(user, model.Password))
+                var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password,lockoutOnFailure : true);
+
+                if (result.Succeeded)
                 {
-                    var token = await GenerateToken(user,model.UserName);
+                    var token = await GenerateToken(user, model.UserName);
                     return Ok(new { token });
                 }
             }
@@ -36,7 +42,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
     {
         if (ModelState.IsValid)
         {
-            var existeduser = await userManager.FindByNameAsync(model.UserName);
+            var existeduser = await _userManager.FindByNameAsync(model.UserName);
             if (existeduser != null)
             {
                 ModelState.AddModelError("", "User already taken");
@@ -50,8 +56,8 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            var result = await userManager.CreateAsync(user, model.Password);
-            var roleResult = await userManager.AddToRoleAsync(user, AppRoles.VipUser);
+            var result = await _userManager.CreateAsync(user, model.Password);
+            var roleResult = await _userManager.AddToRoleAsync(user, AppRoles.VipUser);
 
             if (result.Succeeded && roleResult.Succeeded)
             {
@@ -79,7 +85,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        var userRoles = await userManager.GetRolesAsync(user);
+        var userRoles = await _userManager.GetRolesAsync(user);
         var claims = new List<Claim>
         {
             new(ClaimTypes.Name,userName)

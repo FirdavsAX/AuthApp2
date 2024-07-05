@@ -1,9 +1,11 @@
 ﻿using AuthApp2.Authentication;
-using AuthApp2.Authorization.ClaimBasedAuthorization.ClaimTypes;
+using AuthApp2.Authorization.PolicyBasedAuthorization.ClaimTypes;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualBasic;
+using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -24,11 +26,32 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
             {
                 if (await userManager.CheckPasswordAsync(user, model.Password))
                 {
-                    var token = await GenerateToken(user, model.UserName);
+                    var token = await GenerateTokenAsync(user, model.UserName);
                     return Ok(new { token });
                 }
             }
             ModelState.AddModelError("", "Invalid login or username");
+        }
+        return BadRequest(ModelState);
+    }
+    [HttpPost("login-uzbeksitan")]
+    public async Task<IActionResult> LoginUzbekistan([FromBody] LoginModel login)
+    {
+        //Again, this is a simplified implementation for demonstration purposes. In the real world, 
+        //generally, there is only one login endpoint, and the country information is retrieved from the
+        //database or other sources, such as IP addresses.
+        if (ModelState.IsValid)
+        {
+            var user = await userManager.FindByNameAsync(login.UserName);
+            if (user != null)
+            {
+                if(await userManager.CheckPasswordAsync(user, login.Password))
+                {
+                    var token = GenerateTokenAsync(user,login.UserName);
+                    return Ok(new { token });
+                }
+            }
+            ModelState.AddModelError("", "Invalid username or password");
         }
         return BadRequest(ModelState);
     }
@@ -56,7 +79,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
 
             if (result.Succeeded && roleResult.Succeeded)
             {
-                var token = await GenerateToken(user, model.UserName);
+                var token = await GenerateTokenAsync(user, model.UserName);
                 return Ok(new { token });
             }
 
@@ -68,7 +91,7 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         return BadRequest(ModelState);
 
     }
-    private async Task<string?> GenerateToken(AppUser user, string userName)
+    private async Task<string?> GenerateTokenAsync(AppUser user, string userName)
     {
         //Get secret key, audince , issuer in configuration
         var secret = configuration["JwtConfig:Secret"];
@@ -84,26 +107,21 @@ public class AccountController(UserManager<AppUser> userManager, IConfiguration 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        //Get Roles and Enter they to Claim
-        var userRoles = await userManager.GetRolesAsync(user);
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name, userName),
-            new Claim(ClaimTypes.Country,"Uzbekistan"),
-            new Claim(AppClaimTypes.DrivingLicenseNumber, "123456789"),
-            new Claim(AppClaimTypes.AccessNumber, "123456789")
-        };
-
-        claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
-
         var tokenDescriptor = new SecurityTokenDescriptor()
         {
-            Subject = new ClaimsIdentity(claims),
+            Subject = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Name, userName),
+                //In the real world, you can get the user’s subscription type and country from the database
+                new Claim(AppClaimTypes.Subscription,"Premium"),
+                new Claim(ClaimTypes.Country,"Uzbekistan")
+            }),
             Expires = DateTime.UtcNow.AddDays(1),
             Issuer = issuer,
             Audience = audience,
             SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
         };
+
 
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         var token = tokenHandler.WriteToken(securityToken);

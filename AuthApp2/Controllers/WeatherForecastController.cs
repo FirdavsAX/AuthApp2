@@ -1,6 +1,6 @@
 using AuthApp2.Authentication;
-using AuthApp2.Authorization.ClaimBasedAuthorization.AuthorizationPolicies;
-using AuthApp2.Authorization.ClaimBasedAuthorization.ClaimTypes;
+using AuthApp2.Authorization.PolicyBasedAuthorization.AuthorizationPolicies;
+using AuthApp2.Authorization.PolicyBasedAuthorization.ClaimTypes;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

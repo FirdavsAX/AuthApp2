@@ -1,8 +1,11 @@
 using AuthApp2.Authentication;
+using AuthApp2.Authorization.PolicyBasedAuthorization;
 using AuthApp2.Authorization.PolicyBasedAuthorization.AuthorizationPolicies;
 using AuthApp2.Authorization.PolicyBasedAuthorization.ClaimTypes;
+using AuthApp2.Authorization.PolicyBasedAuthorization.Requirements;
 using AuthApp2.Authorization.RoleBasedAuthorization.Roles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -83,22 +86,13 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(AppAuthorizationPolicies.RequireCountry, policy => policy.RequireClaim(ClaimTypes.Country,"Uzbekistan","Russia"));
-    options.AddPolicy(AppAuthorizationPolicies.RequireDrivingLicenseNumber, policy => policy.RequireClaim(AppClaimTypes.DrivingLicenseNumber));
-    options.AddPolicy(AppAuthorizationPolicies.RequireAccessNumber, policy => policy.RequireClaim(AppClaimTypes.AccessNumber));
-    options.AddPolicy("RequireAdminstatorRole", policy => policy.RequireRole(AppRoles.Administrator));
-    options.AddPolicy("RequireVipUserRole", policy => policy.RequireRole(AppRoles.VipUser));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole(AppRoles.User));
-    options.AddPolicy("RequireUserOrVipUserRole", policy => policy.RequireRole(AppRoles.User, AppRoles.VipUser));
-
-    //add multipart policy , claim based authorization
-    options.AddPolicy(AppAuthorizationPolicies.RequireDrivingLicenseNumber, policy => policy.RequireAssertion(context =>
+    options.AddPolicy(AppAuthorizationPolicies.SpecialPremiumContent, policy =>
     {
-        var hasDrivingLinenseNumber = context.User.HasClaim(c => c.Type == AppAuthorizationPolicies.RequireDrivingLicenseNumber);
-        var hasAccessNumber = context.User.HasClaim(c => c.Type == AppAuthorizationPolicies.RequireAccessNumber);
-        return hasDrivingLinenseNumber && hasAccessNumber;
-    }));
+        policy.Requirements.Add(new SpecialPremiumContentRequirement("Uzbekistan"));
+    });
 });
+builder.Services.AddSingleton<IAuthorizationHandler,SpecialPremiumContentAuthorizationHandler>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -24,46 +24,17 @@ namespace AuthApp2.Controllers
             _logger = logger;
         }
 
-        [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseAndAccessNumber)]
-        [HttpGet("access-number-and-driving-license")]
-        public IActionResult GetDrivingLicenseAndAccessNumber()
+        [Authorize(Policy = AppAuthorizationPolicies.SpecialPremiumContent)]
+        [HttpGet("get-premium",Name = " GetPRemiumWeatherForecast")]
+        public IEnumerable<WeatherForecast> GetPremium()
         {
-            var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value;
-            var accessNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.AccessNumber)?.Value;
-
-            return Ok(new { drivingLicenseNumber, accessNumber });
-        }
-
-
-        [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
-        [Authorize(Policy = AppAuthorizationPolicies.RequireAccessNumber)]  
-        [HttpGet("driving-license-and-access-number")]
-        public ActionResult GetCountryAndAccessNumber()
-        {
-            var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value;
-            var accessNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.AccessNumber)?.Value;
-
-            return Ok(new { drivingLicenseNumber, accessNumber });
-        }
-
-        /// <summary>
-        /// get country with requireCountry policy in authorize attribute
-        /// </summary>
-        /// <returns></returns>
-        [Authorize(Policy = AppAuthorizationPolicies.RequireCountry)]
-        [HttpGet("country")]
-        public ActionResult GetCountry()
-        {
-            var country = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Country)?.Value;
-            return Ok(country);
-        }
-        
-        [Authorize(Policy = AppAuthorizationPolicies.RequireDrivingLicenseNumber)]
-        [HttpGet("driving-license")]
-        public ActionResult GetDrivingLicense()
-        {
-            var drivingLicenseNumber = User.Claims.FirstOrDefault(c => c.Type == AppClaimTypes.DrivingLicenseNumber)?.Value ;
-            return Ok(drivingLicenseNumber);
+            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            })
+           .ToArray();
         }
         
         [HttpGet(Name = "GetWeatherForecast")]

@@ -133,7 +133,6 @@ using (var serviceScope = app.Services.CreateScope())
 
     // Ensure the database is created.
     var dbContext = services.GetRequiredService<AppDbContext>();
-    //dbContext.Database.EnsureDeleted();
     dbContext.Database.EnsureCreated();
 
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
